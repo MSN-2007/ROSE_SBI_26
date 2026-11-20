@@ -74,7 +74,7 @@ def _check_telegram_updates(bot_token: str) -> list[dict]:
         return []
     url = f"https://api.telegram.org/bot{bot_token}/getUpdates?limit=5"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JARVIS-LVII"})
+        req = urllib.request.Request(url, headers={"User-Agent": "ROSE-LVII"})
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             if data.get("ok"):
@@ -97,7 +97,7 @@ def _send_telegram(bot_token: str, chat_id: str, text: str) -> tuple[bool, str]:
         payload = json.dumps(payload_dict).encode("utf-8")
         try:
             req = urllib.request.Request(
-                url, data=payload, headers={"Content-Type": "application/json", "User-Agent": "JARVIS-LVII"}
+                url, data=payload, headers={"Content-Type": "application/json", "User-Agent": "ROSE-LVII"}
             )
             with urllib.request.urlopen(req, timeout=8) as resp:
                 res = json.loads(resp.read().decode("utf-8"))
@@ -115,7 +115,7 @@ def _send_whatsapp(phone: str, apikey: str, text: str) -> tuple[bool, str]:
     encoded = urllib.parse.quote(text)
     url = f"https://api.callmebot.com/whatsapp.php?phone={phone}&text={encoded}&apikey={apikey}"
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "JARVIS-LVII"})
+        req = urllib.request.Request(url, headers={"User-Agent": "ROSE-LVII"})
         with urllib.request.urlopen(req, timeout=8) as resp:
             body = resp.read().decode("utf-8")
             if "success" in body.lower():
@@ -138,7 +138,7 @@ def _send_email(cfg: dict, subject: str, body: str) -> tuple[bool, str]:
         return False, "Recipient email address is not configured."
 
     msg = MIMEMultipart()
-    msg["From"] = f"JARVIS <{user}>"
+    msg["From"] = f"ROSE <{user}>"
     msg["To"] = recipient
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain", "utf-8"))
@@ -180,7 +180,7 @@ def _gather_system_context() -> str:
         cpu = psutil.cpu_percent(interval=0.1)
         ram = psutil.virtual_memory().percent
         disk = psutil.disk_usage("C:\\").percent if Path("C:\\").exists() else psutil.disk_usage("/").percent
-        lines.append(f"JARVIS Host Resources: CPU {cpu}%, RAM {ram}%, Disk {disk}%")
+        lines.append(f"ROSE Host Resources: CPU {cpu}%, RAM {ram}%, Disk {disk}%")
     except Exception:
         pass
 
@@ -198,16 +198,16 @@ def _generate_ai_summary(user_note: str) -> str:
         "- Format cleanly in Markdown with bullet points\n"
         "- Include IoT/Hardware, Homelab health, and host resource highlights\n"
         "- Keep it under 150 words, crisp and professional\n"
-        "- Sign off as: 'JARVIS — All systems nominal'"
+        "- Sign off as: 'ROSE — All systems nominal'"
     )
     summary = gemini.text(prompt, tier=gemini.FAST)
     if not summary:
         # Fallback if Gemini request is offline or timed out
         summary = (
-            "🤖 *JARVIS Status Briefing*\n"
+            "🤖 *ROSE Status Briefing*\n"
             "━━━━━━━━━━━━━━━━━━━━━\n"
             f"{context}\n\n"
-            "_JARVIS — Systems operational._"
+            "_ROSE — Systems operational._"
         )
     return summary
 
@@ -260,10 +260,10 @@ def run(parameters: dict, player=None, session_memory=None) -> str:
     # ── ACTION 3 & 4: Send Summary or Custom Message ───────────────────────────
     if action == "send_summary":
         content = _generate_ai_summary(custom_msg)
-        subject = "JARVIS — System & Hardware Summary"
+        subject = "ROSE — System & Hardware Summary"
     else:
-        content = custom_msg or "Sir, this is a test notification from JARVIS."
-        subject = "JARVIS Notification"
+        content = custom_msg or "Sir, this is a test notification from ROSE."
+        subject = "ROSE Notification"
 
     results = []
 

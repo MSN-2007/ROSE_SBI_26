@@ -1,7 +1,7 @@
 """
 actions/hardware_control.py — Hardware, IoT, and embedded microcontroller integration.
 
-Enables JARVIS to connect with and control hardware devices:
+Enables ROSE to connect with and control hardware devices:
   * ESP32 & ESP8266 (NodeMCU, Wemos, custom MicroPython/Arduino webservers, Tasmota, ESPHome, WLED)
   * Raspberry Pi (HTTP endpoints, Flask/FastAPI REST APIs, remote scripts, MQTT)
   * Relays, switches, smart plugs, LEDs, motors, and servos (Turn ON / OFF / TOGGLE / PWM)
@@ -201,7 +201,7 @@ def _mqtt_publish(broker: str, port: int, topic: str, payload: str,
     if not _MQTT_AVAILABLE:
         return False, "paho-mqtt library is not installed in the environment."
     try:
-        client = _mqtt_client_factory(f"jarvis_pub_{int(time.time() * 1000) % 10000}")
+        client = _mqtt_client_factory(f"rose_pub_{int(time.time() * 1000) % 10000}")
         if username:
             client.username_pw_set(username, password)
         client.connect(broker, port, keepalive=10)
@@ -232,7 +232,7 @@ def _mqtt_read_once(broker: str, port: int, topic: str,
             pass
 
     try:
-        client = _mqtt_client_factory(f"jarvis_sub_{int(time.time() * 1000) % 10000}")
+        client = _mqtt_client_factory(f"rose_sub_{int(time.time() * 1000) % 10000}")
         if username:
             client.username_pw_set(username, password)
         client.on_message = on_message
@@ -749,7 +749,7 @@ def _log(message: str, player=None) -> None:
     print(f"[Hardware] {message}")
     if player:
         try:
-            player.write_log(f"JARVIS [Hardware]: {message}")
+            player.write_log(f"ROSE [Hardware]: {message}")
         except Exception:
             pass
 

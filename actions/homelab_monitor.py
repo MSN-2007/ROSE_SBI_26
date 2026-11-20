@@ -9,7 +9,7 @@ Monitors homelab infrastructure:
       - Telegram: Instant notifications via Telegram Bot API.
       - Email: SMTP alert delivery (Gmail, Outlook, custom mail servers).
       - WhatsApp: Alerts via CallMeBot or Webhook.
-      - JARVIS HUD & Voice: Live activity log and on-screen telemetry banner.
+      - ROSE HUD & Voice: Live activity log and on-screen telemetry banner.
 """
 from __future__ import annotations
 
@@ -82,7 +82,7 @@ def _send_telegram(bot_token: str, chat_id: str, title: str, message: str) -> tu
     if not bot_token or not chat_id:
         return False, "Telegram alert failed: bot_token and chat_id must be configured."
     try:
-        text = f"🚨 *{title}*\n\n{message}\n\n_— JARVIS Homelab Sentinel_"
+        text = f"🚨 *{title}*\n\n{message}\n\n_— ROSE Homelab Sentinel_"
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         resp = requests.post(url, json={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}, timeout=6.0)
         if resp.status_code == 200:
@@ -106,17 +106,17 @@ def _send_email(smtp_cfg: dict, title: str, message: str) -> tuple[bool, str]:
 
     try:
         msg = email.mime.multipart.MIMEMultipart()
-        msg["From"] = f"JARVIS Homelab Sentinel <{user}>"
+        msg["From"] = f"ROSE Homelab Sentinel <{user}>"
         msg["To"] = recipient
-        msg["Subject"] = f"🚨 JARVIS Alert: {title}"
+        msg["Subject"] = f"🚨 ROSE Alert: {title}"
 
         body = (
-            f"JARVIS HOMELAB ALERT REPORT\n"
+            f"ROSE HOMELAB ALERT REPORT\n"
             f"===========================\n"
             f"Event: {title}\n"
             f"Time: {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
             f"Details:\n{message}\n\n"
-            f"Sent automatically by JARVIS Homelab Monitor."
+            f"Sent automatically by ROSE Homelab Monitor."
         )
         msg.attach(email.mime.text.MIMEText(body, "plain"))
 
@@ -137,7 +137,7 @@ def _send_whatsapp(phone: str, apikey: str, title: str, message: str) -> tuple[b
         return False, "WhatsApp alert failed: phone number and CallMeBot API key are required."
     try:
         clean_phone = re.sub(r"[^\d+]", "", phone)
-        text = f"🚨 *{title}*\n{message}\n_— JARVIS Sentinel_"
+        text = f"🚨 *{title}*\n{message}\n_— ROSE Sentinel_"
         url = f"https://api.callmebot.com/whatsapp.php?phone={quote_plus(clean_phone)}&text={quote_plus(text)}&apikey={apikey}"
         resp = requests.get(url, timeout=7.0)
         if resp.status_code == 200 and "error" not in resp.text.lower():
@@ -348,7 +348,7 @@ def _log(message: str, player=None) -> None:
     print(f"[Homelab] {message}")
     if player:
         try:
-            player.write_log(f"JARVIS [Homelab]: {message}")
+            player.write_log(f"ROSE [Homelab]: {message}")
         except Exception:
             pass
 
@@ -414,7 +414,7 @@ def homelab_monitor(parameters: dict, player=None, session_memory=None) -> str:
         # 5. Test alerts
         if action in ("test_alert", "test_telegram", "test_email", "test_whatsapp"):
             ch = "telegram" if "telegram" in action else ("email" if "email" in action else ("whatsapp" if "whatsapp" in action else channel_arg or "telegram"))
-            test_msg = f"This is a test notification from JARVIS Homelab Monitor at {time.strftime('%H:%M:%S')}."
+            test_msg = f"This is a test notification from ROSE Homelab Monitor at {time.strftime('%H:%M:%S')}."
             disp = dispatch_alert("Test Alert", test_msg, channels=[ch], player=player)
             return outcome.done("test_alert", channel=ch, result=json.dumps(disp))
 

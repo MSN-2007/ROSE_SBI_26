@@ -90,14 +90,14 @@ from core.routines.rules import hhmm as _hhmm
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SCHEME = "jarvis-cloud"
+SCHEME = "rose-cloud"
 DEFAULT_PORT = 7443
 API_VERSION = "v1"
 POLL_SECONDS = 25
 MAX_BODY = 12_000_000
 
-INSTALL_DIR = Path("/opt/jarvis-cloud")
-SERVICE_USER = "jarvis"
+INSTALL_DIR = Path("/opt/rose-cloud")
+SERVICE_USER = "rose"
 STATE_DIR = BASE_DIR / "cloud_state"
 WORKSPACE = BASE_DIR / "workspace"
 
@@ -215,7 +215,7 @@ def generate_cert(cert_path: Path, key_path: Path, host: str) -> None:
         subprocess.run(
             ["openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt",
              "ec_paramgen_curve:prime256v1", "-nodes", "-days", "3650",
-             "-keyout", str(key_path), "-out", str(cert_path), "-subj", "/CN=JARVIS Cloud",
+             "-keyout", str(key_path), "-out", str(cert_path), "-subj", "/CN=ROSE Cloud",
              "-addext", f"subjectAltName=DNS:localhost,{san}",
              "-addext", "basicConstraints=critical,CA:TRUE,pathlen:0",
              "-addext", "keyUsage=critical,digitalSignature,keyCertSign"],
@@ -236,7 +236,7 @@ def _cert_with_cryptography(cert_path: Path, key_path: Path, host: str) -> None:
     from cryptography.x509.oid import NameOID
 
     key = ec.generate_private_key(ec.SECP256R1())
-    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "JARVIS Cloud")])
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "ROSE Cloud")])
     alt: list = [x509.DNSName("localhost")]
     try:
         alt.append(x509.IPAddress(ipaddress.ip_address(host)))
@@ -272,7 +272,7 @@ class LinkError(RuntimeError):
 def _network_sentence(host: str, port: int, exc: Exception) -> str:
     text = str(exc).lower()
     if "refused" in text:
-        return (f"{host}:{port} refused the connection — is jarvis-cloud running, and is "
+        return (f"{host}:{port} refused the connection — is rose-cloud running, and is "
                 f"port {port} open in the server's firewall?")
     if "timed out" in text or isinstance(exc, socket.timeout):
         return (f"Nothing answered at {host}:{port}. Check the address, and open TCP port "
@@ -405,7 +405,7 @@ def send_wake(cfg: dict) -> str:
     cfg = cfg or {}
     url = str(cfg.get("wake_url") or "").strip()
     if url:
-        req = urllib.request.Request(url, headers={"User-Agent": "jarvis-cloud-wake"})
+        req = urllib.request.Request(url, headers={"User-Agent": "rose-cloud-wake"})
         try:
             with urllib.request.urlopen(req, timeout=15) as resp:
                 code = resp.status
@@ -578,7 +578,7 @@ def weather_today(city: str) -> dict:
     import urllib.request
 
     def get(url):
-        req = urllib.request.Request(url, headers={"User-Agent": "jarvis-cloud"})
+        req = urllib.request.Request(url, headers={"User-Agent": "rose-cloud"})
         with urllib.request.urlopen(req, timeout=12) as resp:
             return json.loads(resp.read().decode("utf-8"))
 
@@ -911,7 +911,7 @@ def build_system_prompt(decls: list) -> str:
     from memory.memory_manager import format_memory_for_prompt, load_memory
 
     cfg = load_api_keys()
-    name = (cfg.get("assistant_name") or "JARVIS").strip() or "JARVIS"
+    name = (cfg.get("assistant_name") or "ROSE").strip() or "ROSE"
     user = (cfg.get("user_name") or "").strip()
     try:
         template = (BASE_DIR / "core" / "prompt.txt").read_text(encoding="utf-8")
@@ -1149,7 +1149,7 @@ def _inside(root: Path, rel: str) -> Path:
     root = root.resolve()
     given = Path(str(rel or ""))
     # Absolute is fine when it lands inside — that is how telegram_remote names
-    # a file the phone sent: "[FILE] /opt/jarvis-cloud/workspace/inbox/x.pdf".
+    # a file the phone sent: "[FILE] /opt/rose-cloud/workspace/inbox/x.pdf".
     target = (given if given.is_absolute() else root / given).resolve()
     if target != root and root not in target.parents:
         raise PermissionError("that path is outside the workspace")
@@ -1783,7 +1783,7 @@ def serve(runtime, host: str, port: int, cert: Path, key: Path):
             pass                    # scanners and half-open sockets are the weather here
 
     class Handler(BaseHTTPRequestHandler):
-        server_version, sys_version = "jarvis-cloud", ""
+        server_version, sys_version = "rose-cloud", ""
 
         def setup(self):
             self.request.settimeout(70)
@@ -1940,7 +1940,7 @@ def _assistant_name() -> str:
         from memory.config_manager import get_assistant_name
         return get_assistant_name()
     except Exception:
-        return "JARVIS"
+        return "ROSE"
 
 
 def _ids(raw) -> set:
@@ -2068,7 +2068,7 @@ class Runtime:
                 self.queue_event(chat, "[EVENT] You sent a wake signal seven minutes ago and the "
                                  "computer has not checked in. Tell the user briefly, in their "
                                  "language: the usual causes are the wake signal not reaching it, "
-                                 "or JARVIS not set to auto-start and connect to the cloud on launch.")
+                                 "or ROSE not set to auto-start and connect to the cloud on launch.")
             finally:
                 self._waking.discard(chat or 0)
         threading.Thread(target=wait, daemon=True, name="cloud-wake-watch").start()
@@ -2501,7 +2501,7 @@ class Runtime:
 
     def hello(self) -> dict:
         from core import gemini
-        return {"server": "jarvis-cloud", "name": _assistant_name(), "host": platform.node(),
+        return {"server": "rose-cloud", "name": _assistant_name(), "host": platform.node(),
                 "desktop_online": self.state.desktop_online(),
                 "telegram_configured": self.telegram.configured(),
                 "telegram_running": self.telegram.running(),
@@ -2714,7 +2714,7 @@ def init_link(state: CloudState, host: str = "", port: int = 0, rotate: bool = F
 # ═════════════════════════════════════════════════════════════════════════════
 
 _UNIT = """[Unit]
-Description=JARVIS cloud body
+Description=ROSE cloud body
 After=network-online.target
 Wants=network-online.target
 
@@ -2761,7 +2761,7 @@ def install(port: int, host: str) -> None:
 
     _say("▶ Service user")
     if _sh("id", SERVICE_USER, check=False, capture_output=True).returncode:
-        _sh("useradd", "--system", "--create-home", "--home-dir", "/var/lib/jarvis",
+        _sh("useradd", "--system", "--create-home", "--home-dir", "/var/lib/rose",
             "--shell", "/usr/sbin/nologin", SERVICE_USER)
 
     _say("▶ Code")
@@ -2822,10 +2822,10 @@ def install(port: int, host: str) -> None:
                            "or a package from REQUIREMENTS.")
 
     _say("▶ Service")
-    Path("/etc/systemd/system/jarvis-cloud.service").write_text(_UNIT.format(user=SERVICE_USER, dest=dest))
+    Path("/etc/systemd/system/rose-cloud.service").write_text(_UNIT.format(user=SERVICE_USER, dest=dest))
     _sh("systemctl", "daemon-reload")
-    _sh("systemctl", "enable", "jarvis-cloud", capture_output=True)
-    _sh("systemctl", "restart", "jarvis-cloud")
+    _sh("systemctl", "enable", "rose-cloud", capture_output=True)
+    _sh("systemctl", "restart", "rose-cloud")
 
     _say("▶ Firewall")
     _sh("ufw", "allow", "OpenSSH", capture_output=True)
@@ -2833,10 +2833,10 @@ def install(port: int, host: str) -> None:
     _sh("ufw", "--force", "enable", capture_output=True)
 
     time.sleep(2)
-    _sh("systemctl", "--no-pager", "--lines=5", "status", "jarvis-cloud", check=False)
+    _sh("systemctl", "--no-pager", "--lines=5", "status", "rose-cloud", check=False)
     _as_service(dest, "--pair-code")
     _say(f"If your VPS provider has a firewall panel, allow TCP {port} there too.\n"
-         f"Logs:  journalctl -u jarvis-cloud -f")
+         f"Logs:  journalctl -u rose-cloud -f")
 
 
 def deploy(target: str, port: int, host: str, ssh_port: int, key: str = "") -> None:
@@ -2876,21 +2876,21 @@ def deploy(target: str, port: int, host: str, ssh_port: int, key: str = "") -> N
         target = f"root@{target}"
     missing = [rel for rel in MANIFEST if not (BASE_DIR / rel).is_file()]
     if missing:
-        raise SystemExit("These files are missing from this JARVIS folder, so nothing was uploaded:\n  "
+        raise SystemExit("These files are missing from this ROSE folder, so nothing was uploaded:\n  "
                          + "\n  ".join(missing))
     with tempfile.TemporaryDirectory() as tmp:
-        bundle = Path(tmp) / "jarvis-cloud.tgz"
+        bundle = Path(tmp) / "rose-cloud.tgz"
         with tarfile.open(bundle, "w:gz") as tar:
             for rel in MANIFEST:
                 data = (BASE_DIR / rel).read_bytes().replace(b"\r\n", b"\n")
-                info = tarfile.TarInfo(f"jarvis-src/{rel}")
+                info = tarfile.TarInfo(f"rose-src/{rel}")
                 info.size = len(data)
                 tar.addfile(info, io.BytesIO(data))
         _say(f"▶ Uploading {len(MANIFEST)} files to {target}")
-        _sh("scp", "-P", str(ssh_port), *opts, str(bundle), f"{target}:/tmp/jarvis-cloud.tgz")
+        _sh("scp", "-P", str(ssh_port), *opts, str(bundle), f"{target}:/tmp/rose-cloud.tgz")
     args = f"install --port {int(port)}" + (f" --host {host}" if host else "")
-    remote = ("set -e; rm -rf ~/jarvis-src; tar xzf /tmp/jarvis-cloud.tgz -C ~; "
-              "rm -f /tmp/jarvis-cloud.tgz; cd ~/jarvis-src; "
+    remote = ("set -e; rm -rf ~/rose-src; tar xzf /tmp/rose-cloud.tgz -C ~; "
+              "rm -f /tmp/rose-cloud.tgz; cd ~/rose-src; "
               "command -v python3 >/dev/null || (apt-get update -q && apt-get install -y -q python3); "
               f"if [ \"$(id -u)\" -eq 0 ]; then python3 -m core.cloud {args}; "
               f"else sudo python3 -m core.cloud {args}; fi")
@@ -2925,13 +2925,13 @@ def main() -> None:
     state = CloudState()
     doc, cert, key = init_link(state, args.host, args.port, rotate=args.rotate)
     if args.init or args.pair_code or args.rotate:
-        _say("\nPairing code — paste it into JARVIS on your computer:\n"
+        _say("\nPairing code — paste it into ROSE on your computer:\n"
              "  ⚙ → PLUGIN SETTINGS → CLOUD AGENT → Pairing code\n\n"
              f"  {make_pair_code(doc['host'], doc['port'], doc['secret'], doc['fingerprint'])}\n\n"
              "Treat it like a password: anyone holding it can talk to this server.")
         if args.rotate:
             _say("The running service accepts the new code at once and refuses the old one — "
-                 "no restart needed. Paste the new code into JARVIS and press TEST & SYNC.")
+                 "no restart needed. Paste the new code into ROSE and press TEST & SYNC.")
         return
     Runtime().run(doc["port"], cert, key)
 

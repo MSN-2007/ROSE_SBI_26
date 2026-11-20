@@ -15,8 +15,8 @@ from . import audio
 from .base import DEFAULT_CAPS, Field
 
 VOICE_PRESETS = (
-    ("en-US-ChristopherNeural", "Christopher — Natural, warm, intelligent AI (Recommended)"),
-    ("en-GB-RyanNeural",        "Ryan — British, cultured & refined (Authentic JARVIS)"),
+    ("en-GB-RyanNeural",        "Ryan — British, cultured & refined (ROSE default ★)"),
+    ("en-US-ChristopherNeural", "Christopher — Natural, warm, intelligent American male"),
     ("en-US-GuyNeural",         "Guy — Conversational, friendly American male"),
     ("en-US-JennyNeural",       "Jenny — Expressive, clear American female"),
     ("en-US-EricNeural",        "Eric — Calm, composed American male"),
@@ -25,7 +25,7 @@ VOICE_PRESETS = (
 )
 
 VOICE_CHOICES = tuple(v[0] for v in VOICE_PRESETS)
-DEFAULT_VOICE = "en-US-ChristopherNeural"
+DEFAULT_VOICE = "en-GB-RyanNeural"
 
 
 def _decode_mp3_to_pcm24(data: bytes) -> bytes:
@@ -98,7 +98,7 @@ PROVIDER = {
     "needs": (
         Field("voice", "Voice", kind="choice", choices=VOICE_CHOICES,
               default=DEFAULT_VOICE,
-              hint="Christopher (US Male), Ryan (British JARVIS), Guy, Jenny"),
+              hint="Christopher (US Male), Ryan (British ROSE), Guy, Jenny"),
         Field("rate", "Speed adjustment", kind="text", default="+0%",
               required=False, advanced=True, hint="e.g. +0%, +10%, -5%"),
         Field("pitch", "Pitch adjustment", kind="text", default="+0Hz",

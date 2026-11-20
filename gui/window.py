@@ -126,7 +126,7 @@ class MainWindow(QMainWindow):
 
         # Load customization from config
         _cfg = _read_full_config()
-        self._assistant_name: str = (_cfg.get("assistant_name") or "JARVIS").strip()
+        self._assistant_name: str = (_cfg.get("assistant_name") or "ROSE").strip()
         _display = self._assistant_name.upper()
 
         # Apply the saved UI colour BEFORE panels/stylesheets are built
@@ -146,13 +146,13 @@ class MainWindow(QMainWindow):
 
         self.on_text_command   = None
         self.on_remote_clicked = None   # callable: () -> (url, key) | None
-        self.on_interrupt      = None   # callable: () -> None — stop JARVIS mid-speech
+        self.on_interrupt      = None   # callable: () -> None — stop ROSE mid-speech
         self.on_voice_change   = None   # callable: () -> None — rebuild session with new voice
         self.on_audio_device_change = None  # callable: () -> None — reopen audio streams
         self._confirm_overlay  = None   # live ConfirmBanner, if one is on screen
-        self.get_plugins       = None   # callable: () -> list[dict], set by JarvisLive
-        self.get_plugin_settings = None # callable: () -> list[dict] settings schemas, set by JarvisLive
-        self.on_wake_toggle    = None   # callable: (enable: bool) -> str, set by JarvisLive
+        self.get_plugins       = None   # callable: () -> list[dict], set by RoseLive
+        self.get_plugin_settings = None # callable: () -> list[dict] settings schemas, set by RoseLive
+        self.on_wake_toggle    = None   # callable: (enable: bool) -> str, set by RoseLive
         self.on_wake_manual    = None   # callable: () -> None — manual sleep/wake
         self.on_push_to_talk   = None   # callable: (enable: bool) -> str scope
         self.ptt_hold          = None   # callable: (held: bool) -> None — windowed chord
@@ -225,7 +225,7 @@ class MainWindow(QMainWindow):
         # inventing a second mechanism means the avatar, the camera and a video
         # can never be on screen at once.
         self._video_split = False        # is the sound a separate stream?
-        self._video_auto_muted = False   # did JARVIS close the mic, or the user?
+        self._video_auto_muted = False   # did ROSE close the mic, or the user?
         # A plain flag rather than reading the widget. video_is_playing() is
         # called from plugin threads, and reading a widget's state from one is
         # not something to rely on; an attribute is.
@@ -257,7 +257,7 @@ class MainWindow(QMainWindow):
             return b
 
         # Muted is the default and the button says so, because a soundtrack
-        # talking over JARVIS is the one way this feature could make the
+        # talking over ROSE is the one way this feature could make the
         # assistant worse rather than better.
         self._video_mute_btn = _vid_btn("🔇  SOUND OFF")
         self._video_mute_btn.clicked.connect(self._toggle_video_mute)
@@ -666,7 +666,7 @@ class MainWindow(QMainWindow):
     def _sync_mic_for_video(self) -> None:
         """Close the microphone while the video is making sound.
 
-        JARVIS subtracts its OWN output from the microphone — that is what
+        ROSE subtracts its OWN output from the microphone — that is what
         core/echo.py does — but a video plays through a different output
         entirely, so the guard has never heard of it and the assistant answers
         the film. There is no arrangement in which an open microphone and a
@@ -674,7 +674,7 @@ class MainWindow(QMainWindow):
 
         So the microphone closes for exactly as long as the sound is on, and
         opens again by itself the moment it goes off or the video is closed.
-        Only if JARVIS closed it: a microphone the user muted themselves stays
+        Only if ROSE closed it: a microphone the user muted themselves stays
         muted, and pressing the mute key during a video hands the decision back
         to them for good.
         """
@@ -787,9 +787,9 @@ class MainWindow(QMainWindow):
     # Icon generation — arc-reactor style, rendered with Pillow
     # ------------------------------------------------------------------
     @staticmethod
-    def _build_jarvis_icon(out_path: Path) -> bool:
+    def _build_rose_icon(out_path: Path) -> bool:
         """
-        Render a JARVIS arc-reactor icon at 4× resolution and downsample
+        Render a ROSE arc-reactor icon at 4× resolution and downsample
         for crisp results at all sizes. Saves a multi-res .ico to out_path.
         Returns True on success.
         """
@@ -1029,9 +1029,9 @@ class MainWindow(QMainWindow):
         desktop = self._get_desktop_dir()
 
         # Arc-reactor icon (.ico — also exported as .png for Linux/macOS)
-        ico_path = Path(__file__).resolve().parent.parent / "config" / "jarvis.ico"
+        ico_path = Path(__file__).resolve().parent.parent / "config" / "rose.ico"
         if not ico_path.exists():
-            self._build_jarvis_icon(ico_path)
+            self._build_rose_icon(ico_path)
 
         try:
             _os = platform.system()
@@ -1055,7 +1055,7 @@ class MainWindow(QMainWindow):
 
                 # Launcher executable (bash — runs as background process,
                 # macOS does NOT open Terminal for executables inside .app bundles)
-                launcher = mac_dir / "JARVIS"
+                launcher = mac_dir / "ROSE"
                 launcher.write_text(
                     "#!/usr/bin/env bash\n"
                     f'cd "{script.parent}"\n'
@@ -1070,9 +1070,9 @@ class MainWindow(QMainWindow):
                     '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
                     '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
                     '<plist version="1.0"><dict>\n'
-                    '  <key>CFBundleExecutable</key><string>JARVIS</string>\n'
+                    '  <key>CFBundleExecutable</key><string>ROSE</string>\n'
                     '  <key>CFBundleIdentifier</key>'
-                    '<string>com.jarvis.assistant</string>\n'
+                    '<string>com.rose.assistant</string>\n'
                     '  <key>CFBundleName</key><string>J.A.R.V.I.S</string>\n'
                     '  <key>CFBundlePackageType</key><string>APPL</string>\n'
                     '  <key>CFBundleVersion</key><string>1.0</string>\n'
@@ -1287,7 +1287,7 @@ class MainWindow(QMainWindow):
     @staticmethod
     def _subtitle(display: str) -> str:
         return ("Just A Rather Very Intelligent System"
-                if display.replace(".", "") == "JARVIS" else "Personal AI Assistant")
+                if display.replace(".", "") == "ROSE" else "Personal AI Assistant")
 
     def _fit_side_columns(self) -> None:
         """Side columns grow with the window, within limits, so the centre keeps
@@ -1978,7 +1978,7 @@ class MainWindow(QMainWindow):
     # while translating the tag would mean a table per language, which is worse.
     # A shape carries it in every language, and shape plus colour still reads
     # for someone who cannot separate red from amber. What the marks mean
-    # arrives the way everything else does: JARVIS says it out loud.
+    # arrives the way everything else does: ROSE says it out loud.
     _REVIEW_MARKS = {"serious": ("RED", "▲"), "caution": ("ACC2", "●"), "note": ("PRI_DIM", "·")}
 
     @staticmethod
@@ -2049,7 +2049,7 @@ class MainWindow(QMainWindow):
     # An interactive twin of the content panel. The plugin only ever hands over
     # questions; everything about asking, marking and reporting happens here,
     # and the finished result is pushed back into the conversation the same way
-    # a dropped file is — as a message JARVIS reads and responds to. That keeps
+    # a dropped file is — as a message ROSE reads and responds to. That keeps
     # the tool call short (it returns the moment the board is up) and leaves the
     # talking to the assistant, in the user's own language.
 
@@ -2206,7 +2206,7 @@ class MainWindow(QMainWindow):
         elif verdict is False:
             mark, colour = "✕  " + str(q.get("answer", "")), C.RED
         else:
-            # Open answers and near-miss gap-fills are JARVIS's to judge. Saying
+            # Open answers and near-miss gap-fills are ROSE's to judge. Saying
             # so is honest; marking it wrong here would be a guess.
             mark, colour = "…  noted — I'll go over this one with you", C.ACC2
         note = q.get("note") or ""
@@ -2241,7 +2241,7 @@ class MainWindow(QMainWindow):
 
         self._log.append_log(f"QUIZ: {topic or 'quiz'} — {right}/{total} correct")
 
-        # Hand it back to JARVIS as a message, not as a tool return: the tool
+        # Hand it back to ROSE as a message, not as a tool return: the tool
         # call ended minutes ago. This is the same channel a dropped file uses.
         lines = [f"[QUIZ_DONE] topic={topic or 'general'} | "
                  f"auto-marked {right}/{total} correct"
@@ -2352,7 +2352,7 @@ class MainWindow(QMainWindow):
                 key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                     r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_READ)
                 try:
-                    winreg.QueryValueEx(key, "JARVIS_AI")
+                    winreg.QueryValueEx(key, "ROSE_AI")
                     return True
                 except FileNotFoundError:
                     return False
@@ -2360,9 +2360,9 @@ class MainWindow(QMainWindow):
                     winreg.CloseKey(key)
             elif _OS == "Darwin":
                 return (Path.home() / "Library" / "LaunchAgents"
-                        / "com.jarvis.assistant.plist").exists()
+                        / "com.rose.assistant.plist").exists()
             else:
-                return (Path.home() / ".config" / "autostart" / "jarvis.desktop").exists()
+                return (Path.home() / ".config" / "autostart" / "rose.desktop").exists()
         except Exception:
             return False
 
@@ -2375,17 +2375,17 @@ class MainWindow(QMainWindow):
                 reg = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
                     r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_ALL_ACCESS)
                 if currently_on:
-                    winreg.DeleteValue(reg, "JARVIS_AI")
+                    winreg.DeleteValue(reg, "ROSE_AI")
                 else:
                     pythonw = Path(sys.executable).parent / "pythonw.exe"
                     exe = str(pythonw if pythonw.exists() else sys.executable)
-                    winreg.SetValueEx(reg, "JARVIS_AI", 0, winreg.REG_SZ,
+                    winreg.SetValueEx(reg, "ROSE_AI", 0, winreg.REG_SZ,
                                       f'"{exe}" "{script}"')
                 winreg.CloseKey(reg)
             elif _OS == "Darwin":
                 plist_dir = Path.home() / "Library" / "LaunchAgents"
                 plist_dir.mkdir(parents=True, exist_ok=True)
-                plist = plist_dir / "com.jarvis.assistant.plist"
+                plist = plist_dir / "com.rose.assistant.plist"
                 if currently_on:
                     plist.unlink(missing_ok=True)
                 else:
@@ -2394,7 +2394,7 @@ class MainWindow(QMainWindow):
                         '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" '
                         '"http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n'
                         '<plist version="1.0"><dict>\n'
-                        '  <key>Label</key><string>com.jarvis.assistant</string>\n'
+                        '  <key>Label</key><string>com.rose.assistant</string>\n'
                         '  <key>ProgramArguments</key><array>\n'
                         f'    <string>{sys.executable}</string>\n'
                         f'    <string>{script}</string>\n'
@@ -2405,7 +2405,7 @@ class MainWindow(QMainWindow):
             else:
                 desk_dir = Path.home() / ".config" / "autostart"
                 desk_dir.mkdir(parents=True, exist_ok=True)
-                desk = desk_dir / "jarvis.desktop"
+                desk = desk_dir / "rose.desktop"
                 if currently_on:
                     desk.unlink(missing_ok=True)
                 else:
@@ -2455,7 +2455,7 @@ class MainWindow(QMainWindow):
                         "awake": bool(s.get("awake"))}
             except Exception:
                 pass
-        # Before JarvisLive has wired its callback (drawer built at startup).
+        # Before RoseLive has wired its callback (drawer built at startup).
         ready, enabled = False, False
         try:
             from core.wake_word import is_ready
@@ -2511,7 +2511,7 @@ class MainWindow(QMainWindow):
                               else "◉  HUD: REACTOR CORE")
         self._hud_btn.setStyleSheet(btn_css("choice"))
         self._hud_btn.setToolTip(
-            "An animated head that speaks your words and shows what JARVIS is "
+            "An animated head that speaks your words and shows what ROSE is "
             "doing. Tap to switch to the reactor core."
             if face else
             "A 3-D reactor core that turns with the state and moves with your "
@@ -2614,7 +2614,7 @@ class MainWindow(QMainWindow):
                 self._wake_dl_sig.emit(ok, msg)
             threading.Thread(target=_work, daemon=True).start()
             return
-        # Already downloaded → just flip enabled/disabled through JarvisLive.
+        # Already downloaded → just flip enabled/disabled through RoseLive.
         if self.on_wake_toggle:
             try:
                 self.on_wake_toggle(not st["enabled"])
@@ -2646,7 +2646,7 @@ class MainWindow(QMainWindow):
             self._customize_overlay.hide()
         cw = self.centralWidget()
         ov = CustomizeOverlay(
-            cfg.get("assistant_name", "JARVIS") or "JARVIS",
+            cfg.get("assistant_name", "ROSE") or "ROSE",
             cfg.get("user_name", ""),
             cfg.get("ui_color", "") or DEFAULT_UI_COLOR,
             cfg.get("voice_name", ""),
@@ -2673,7 +2673,7 @@ class MainWindow(QMainWindow):
     def _apply_name_update(self, name: str, user_name: str, ui_color: str = "",
                            voice: str = ""):
         """Update all name/theme-dependent UI elements and persist to config."""
-        self._assistant_name = name.strip() or "JARVIS"
+        self._assistant_name = name.strip() or "ROSE"
         display = self._assistant_name.upper()
         self.setWindowTitle(f"{display} — {APP_VERSION}")
         self._title_lbl.setText(display)
@@ -2964,7 +2964,7 @@ class MainWindow(QMainWindow):
             self._overlay.hide()
             self._overlay = None
         self._apply_state("LISTENING")
-        self._assistant_name = _read_full_config().get("assistant_name", "JARVIS") or "JARVIS"
+        self._assistant_name = _read_full_config().get("assistant_name", "ROSE") or "ROSE"
         self._log.append_log(f"SYS: Initialised. OS={os_name.upper()}. {self._assistant_name} online.")
 
 

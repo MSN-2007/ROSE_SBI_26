@@ -122,8 +122,8 @@ def is_configured() -> bool:
 
 
 def get_assistant_name() -> str:
-    """Return the configured assistant name, or 'JARVIS' if not set."""
-    return load_api_keys().get("assistant_name", "JARVIS") or "JARVIS"
+    """Return the configured assistant name, or 'ROSE' if not set."""
+    return load_api_keys().get("assistant_name", "ROSE") or "ROSE"
 
 
 def get_user_name() -> str:
@@ -136,7 +136,7 @@ def save_assistant_config(assistant_name: str, user_name: str) -> None:
     """Persist assistant name and user name to config."""
     ensure_config_dir()
     data = _read_for_write()
-    data["assistant_name"] = assistant_name.strip() or "JARVIS"
+    data["assistant_name"] = assistant_name.strip() or "ROSE"
     data["user_name"] = user_name.strip()
     _write_config(data)
 
@@ -167,7 +167,7 @@ def save_voice(voice_name: str) -> None:
 
 
 def get_wake_word_enabled() -> bool:
-    """Whether local wake-word gating is on (assistant sleeps until 'Hey Jarvis')."""
+    """Whether local wake-word gating is on (assistant sleeps until 'Hey Rose')."""
     return load_api_keys().get("wake_word_enabled", False)
 
 
