@@ -1387,6 +1387,12 @@ class JarvisLive:
 
         memory     = load_memory()
         mem_str    = format_memory_for_prompt(memory)
+        # Graph memory — additive block injected after the flat-memory block
+        try:
+            from memory.graph_memory import format_for_prompt as _graph_prompt
+            _graph_str = _graph_prompt(budget=600)
+        except Exception:
+            _graph_str = ""
         sys_prompt = _load_system_prompt()
 
         now      = datetime.now()
@@ -1465,6 +1471,8 @@ class JarvisLive:
         parts = [time_ctx, identity_ctx]
         if mem_str:
             parts.append(mem_str)
+        if _graph_str:
+            parts.append(_graph_str)
         parts.append(sys_prompt)
 
         cfg = dict(

@@ -949,6 +949,13 @@ def build_system_prompt(decls: list) -> str:
     mem = format_memory_for_prompt(load_memory())
     if mem:
         parts.append(mem)
+    try:
+        from memory.graph_memory import format_for_prompt as _gfp
+        _gm = _gfp(budget=600)
+        if _gm:
+            parts.append(_gm)
+    except Exception:
+        pass
     parts.append(body)
     return "\n".join(parts)
 

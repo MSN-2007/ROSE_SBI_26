@@ -48,3 +48,7 @@ logs/
 downloads/
 screenshots/
 package-lock.json
+
+memory/knowledge_graph.db
+memory/knowledge_graph.db-wal
+memory/knowledge_graph.db-shm
