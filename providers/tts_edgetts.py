@@ -1,6 +1,6 @@
 """providers/tts_edgetts.py — Ultra-realistic human neural speech synthesis via Microsoft Edge TTS.
 
-Zero cost, zero API keys required, studio-grade neural voices (Christopher, Ryan, Guy, Jenny).
+Zero cost, zero API keys required, studio-grade neural voices.
 Streams audio and decodes through PyAV directly into 24 kHz mono PCM16.
 """
 from __future__ import annotations
@@ -15,17 +15,23 @@ from . import audio
 from .base import DEFAULT_CAPS, Field
 
 VOICE_PRESETS = (
-    ("en-GB-RyanNeural",        "Ryan — British, cultured & refined (ROSE default ★)"),
-    ("en-US-ChristopherNeural", "Christopher — Natural, warm, intelligent American male"),
-    ("en-US-GuyNeural",         "Guy — Conversational, friendly American male"),
-    ("en-US-JennyNeural",       "Jenny — Expressive, clear American female"),
+    # ── Female voices (ROSE default) ──────────────────────────────────────────
+    ("en-US-AriaNeural",        "Aria — Warm, natural American female ★ ROSE default"),
+    ("en-GB-SoniaNeural",       "Sonia — Confident, polished British female"),
+    ("en-US-JennyNeural",       "Jenny — Expressive, friendly American female"),
+    ("en-US-MichelleNeural",    "Michelle — Calm, articulate American female"),
+    ("en-US-SaraNeural",        "Sara — Clear, professional American female"),
+    ("en-IN-NeerjaNeural",      "Neerja — Natural Indian English female"),
+    # ── Male voices ───────────────────────────────────────────────────────────
+    ("en-GB-RyanNeural",        "Ryan — British, cultured & refined (male)"),
+    ("en-US-ChristopherNeural", "Christopher — Natural, warm American male"),
+    ("en-US-GuyNeural",         "Guy — Conversational American male"),
     ("en-US-EricNeural",        "Eric — Calm, composed American male"),
     ("en-IN-PrabhatNeural",     "Prabhat — Natural Indian English male"),
-    ("en-IN-NeerjaNeural",      "Neerja — Natural Indian English female"),
 )
 
 VOICE_CHOICES = tuple(v[0] for v in VOICE_PRESETS)
-DEFAULT_VOICE = "en-GB-RyanNeural"
+DEFAULT_VOICE = "en-US-AriaNeural"
 
 
 def _decode_mp3_to_pcm24(data: bytes) -> bytes:
@@ -98,7 +104,7 @@ PROVIDER = {
     "needs": (
         Field("voice", "Voice", kind="choice", choices=VOICE_CHOICES,
               default=DEFAULT_VOICE,
-              hint="Christopher (US Male), Ryan (British ROSE), Guy, Jenny"),
+              hint="Aria (US Female ★ default), Sonia (British Female), Jenny, Michelle, Sara, Ryan (British Male)"),
         Field("rate", "Speed adjustment", kind="text", default="+0%",
               required=False, advanced=True, hint="e.g. +0%, +10%, -5%"),
         Field("pitch", "Pitch adjustment", kind="text", default="+0Hz",
