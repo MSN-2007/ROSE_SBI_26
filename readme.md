@@ -72,6 +72,10 @@ It's not just an assistant — it's an extension of your digital life.
 ### Core Features
 | Feature | Description |
 |---|---|
+| ⚡ Hardware & IoT Hub | Controls ESP32/ESP8266 & Raspberry Pi over HTTP, MQTT, Sockets & Serial — room lights, fans, relays and live farm sensor telemetry |
+| 🖥️ Homelab Monitor | Real-time Docker container crash detection, CPU/RAM/Disk saturation alerts and service uptime healthchecks |
+| 🚨 Instant Alert Dispatcher | Multi-channel critical alert routing directly to your **Telegram Bot**, Gmail SMTP, or WhatsApp CallMeBot |
+| ⚛️ Clean Arc Reactor HUD | High-contrast 3D Arc Reactor command centerpiece on `main`; face avatar cleanly preserved on `feature/face-hud` |
 | 🧵 Background Tasks | Long work runs beside the conversation — checkpointed every step, resumed after a restart, stopped, finished early or re-steered by voice |
 | 🔬 Deep Research | Plans the questions, reads sources in full, checks every quote against the saved page in code, and writes a cited report in your language |
 | 🧑‍🔬 Agents as Files | An agent is a Markdown file in `agents/` — its tools, time budget and instructions. Adding one is one file |
@@ -244,6 +248,39 @@ The reactor core is a real 3-D projection — sphere, gyro rings, orbit and plat
 depth-cued so the far side dims — drawn with QPainter and numpy. Static layers are
 cached: **5.4 ms a frame**, no GPU. The left column adapts to the window's height
 instead of letting gauges overlap.
+
+### ⚡ Hardware & IoT Control Hub (ESP32, ESP8266, Raspberry Pi)
+
+Control home automation hardware and read remote sensor nodes straight from JARVIS via voice, the desktop overlay, or the web dashboard:
+
+- **Protocols Supported:** HTTP/REST endpoints, MQTT brokers, direct TCP Sockets, and USB Serial.
+- **Room & Device Registry:** Manage devices mapped to rooms (e.g. `bedroom_esp`, `living_room_esp`, `farm_server`).
+- **Turn On / Off / Toggle / Speed:** Control lights, ceiling fans, relays, and actuators.
+- **Sensor Telemetry:** Read real-time telemetry from farm sensors (soil moisture, temperature, humidity, light) and homelab environmental monitors.
+- **LAN Discovery:** Built-in auto-scan discovers active microcontrollers on your local subnet.
+- **Desktop & Mobile UI:** Access via `⚡ HARDWARE & IOT HUB` in the Quick Drawer or via the web dashboard `/api/hardware/*` endpoints.
+
+### 🖥️ Homelab Monitoring & Instant Alerts (Telegram, Email, WhatsApp)
+
+JARVIS continuously watches your self-hosted infrastructure:
+
+- **Docker Health:** Queries the Docker daemon HTTP socket to detect crashed or restarting containers instantly.
+- **Server Metrics:** Monitors CPU saturation, RAM pressure, and disk partition thresholds (e.g., C: drive alert at >90%).
+- **Service Probes:** Periodically pings HTTP services (e.g. Home Assistant, Pi-hole, telemetry APIs).
+- **Multi-Channel Alert Dispatcher:**
+  - 🤖 **Telegram:** Instant push alerts to your Telegram chat via `@SBI_2k26_bot` with rich Markdown formatting.
+  - ✉️ **Email:** SMTP delivery (Gmail TLS) to your designated alert inbox.
+  - 💬 **WhatsApp:** Webhook integration via CallMeBot API.
+
+### ⚛️ Clean Arc Reactor HUD & Branch Separation
+
+- **`main` Branch:** Defaults to the sleek, distraction-free **3D Arc Reactor Core** with audio-reactive waveforms, system telemetry, and voice state readouts. The facial mesh is completely deactivated.
+- **`feature/face-hud` Branch:** The original holographic AI face avatar with viseme lip-sync and expressive acting is preserved in its own branch.
+
+### 🧠 Memory Architecture & Knowledge Graph Roadmap (/graphify)
+
+- **Current Memory:** Two-tier hybrid architecture with short-term conversational working memory (`core/memory.py`) and persistent categorized long-term memory (`memory/memory_manager.py`).
+- **Knowledge Graph Roadmap (`/graphify`):** Upgrading from flat key-value JSON to an associative property graph (`memory/graph_memory.py`), mapping entities (Rooms, Devices, Servers, Sensors, Preferences) and their relationships (`CONTROLS`, `MONITORS`, `LOCATED_IN`, `ALERTS_VIA`) for deep multi-hop reasoning.
 
 ### 🪜 The model ladder, measured again
 
