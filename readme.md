@@ -1,11 +1,135 @@
-# ⚙️ MARK LVII (57)
-### The Ultimate Cross-Platform Personal AI Assistant — By FatihMakes
+# 🌹 ROSE — Responsive Omniscient System Engine
+### Your Personal AI Computer Assistant — ROSE SBI 2026
 
-> 📺 **[Watch the full setup video on YouTube](https://www.youtube.com/@FatihMakes)**
+> Built on JARVIS Mark LVII · Inspired by J.A.R.V.I.S. and F.R.I.D.A.Y.
 
-A real-time voice AI that can hear, see, speak, and control your computer — on any OS. Supports Windows, macOS, and Linux. Built on the Gemini Live API for native audio streaming, delivering zero subscriptions and total digital autonomy.
+A real-time voice AI that can hear, see, speak, control your computer, remember your world, and monitor your homelab — running locally with Gemini as the brain.
 
 ---
+
+## ✨ What's New in ROSE
+
+### 🧠 Knowledge Graph Memory Engine (`memory/graph_memory.py`)
+
+ROSE's memory is no longer a flat 6-bucket JSON file. It is a **SQLite-backed Knowledge Graph**:
+
+| Feature | Old (flat JSON) | New (Knowledge Graph) |
+|---|---|---|
+| Storage | `long_term.json` — 6 buckets | `knowledge_graph.db` — nodes + edges |
+| Relationships | None | `Sufiyan owns ROSE monitors Farm_Server` |
+| Search | Dumb substring match | FTS5 full-text + graph traversal |
+| Prompt injection | Recency-sorted key/value dump | Compact entity+relationship block |
+| Scale | ~200 entries before it hurts | Thousands of nodes, zero prompt bloat |
+| Migration | — | Auto-seeds from old `long_term.json` on first run |
+
+**Graph concepts:**
+- **Nodes**: `person`, `project`, `device`, `place`, `skill`, `preference`, `event`, `fact`
+- **Edges**: directed, weighted, labelled — e.g. `owns`, `monitors`, `works_on`, `knows`
+- **FTS5**: sub-millisecond full-text search over all node names and properties
+- **LLM tool**: `recall_graph` — search mode, expand (neighbourhood walk) mode, stats mode
+
+### 🗑️ Stripped Dead Weight
+
+Removed actions that added no value to the core mission:
+- `actions/flight_finder.py` — ❌ removed
+- `actions/game_updater.py` — ❌ removed
+- `actions/youtube_video.py` — ❌ removed
+- `actions/video_player.py` — ❌ removed
+
+### 🔊 Microsoft Edge Neural TTS
+
+British male voice (Ryan Neural) — sounds human, works fully offline via `edge-tts`.
+Set in providers panel: `edgetts` provider, voice `en-GB-RyanNeural`.
+
+### 📡 Homelab Monitor + Telegram Alerts
+
+`actions/homelab_monitor.py` — Docker crash detection, CPU/RAM/Disk saturation.
+Multi-channel alerts: **Telegram**, Email, WhatsApp.
+
+### 💬 Smart Communications Plugin
+
+`plugins/smart_comms.py` — check Telegram/email, send AI-generated summaries,
+route messages across channels from voice commands.
+
+### ⚡ Hardware & IoT Hub
+
+`actions/hardware_control.py` — HTTP/REST, MQTT, TCP Socket, USB Serial.
+Device registry: `config/hardware_devices.json`.
+
+---
+
+## 🚀 Quick Start
+
+```bash
+# 1. Clone
+git clone https://github.com/MSN-2007/ROSE_SBI_26.git
+cd ROSE_SBI_26
+
+# 2. Install dependencies
+pip install -r requirements.txt
+pip install faster-whisper edge-tts
+
+# 3. Configure
+cp config/api_keys.json.example config/api_keys.json
+# Edit config/api_keys.json — add your Gemini API key
+
+# 4. Run
+python main.py
+```
+
+**Recommended provider setup (Settings → Engine & Providers):**
+- Mode: `pipeline`
+- STT: `whisper@local` (faster-whisper)
+- LLM: `openai_compat@gemini` → `gemini-2.5-flash`
+- TTS: `edgetts` → `en-GB-RyanNeural`
+
+---
+
+## 🧩 Architecture
+
+```
+ROSE
+├── main.py                  # Event loop, voice session, tool dispatch
+├── core/
+│   ├── cloud.py             # Pipeline mode (HTTP LLM + STT + TTS)
+│   ├── gemini.py            # Gemini API client (text, json, smart/fast tiers)
+│   └── action_loader.py     # Auto-discovers actions/*.py
+├── memory/
+│   ├── graph_memory.py      # ★ Knowledge Graph Engine (SQLite + FTS5)
+│   ├── memory_manager.py    # Legacy flat-JSON compat layer (kept for safety)
+│   └── config_manager.py    # Settings read/write (config/api_keys.json)
+├── actions/                 # Auto-loaded tools (each self-describes via TOOL dict)
+│   ├── recall_graph.py      # ★ Graph memory LLM tool
+│   ├── hardware_control.py  # IoT / homelab device control
+│   ├── homelab_monitor.py   # Crash/saturation detection + alerts
+│   └── ...                  # computer_control, web_search, browser_control, etc.
+├── plugins/                 # Optional capability modules
+│   └── smart_comms.py       # Telegram / Email / WhatsApp integration
+├── providers/               # Swappable STT / LLM / TTS backends
+│   └── tts_edgetts.py       # Microsoft Edge Neural TTS
+└── gui/                     # PyQt6 HUD (Qt main thread only)
+```
+
+---
+
+## 🔑 Config Files (not in git)
+
+| File | Purpose |
+|---|---|
+| `config/api_keys.json` | Gemini key, provider settings, assistant name |
+| `config/homelab_config.json` | Telegram bot token, email, WhatsApp |
+| `config/hardware_devices.json` | IoT device registry |
+| `memory/knowledge_graph.db` | Graph memory database |
+
+Copy the `.example` files to get started.
+
+---
+
+## 🤝 Credits
+
+Original JARVIS Mark LVII by FatihMakes.
+ROSE fork and Knowledge Graph memory by Sufiyan (SBI 2026).
+
 
 ## ✨ Overview
 
