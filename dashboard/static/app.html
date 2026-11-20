@@ -127,9 +127,98 @@
       color:var(--green); font-size:12px; font-weight:700; letter-spacing:1px;
       padding:7px 18px; border-radius:99px;
       opacity:0; transition:opacity 0.22s,transform 0.22s;
-      pointer-events:none; white-space:nowrap;
+      pointer-events:none; white-space:nowrap; z-index: 1000;
     }
     #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* ── HARDWARE BUTTON & MODAL ── */
+    .btn-hw {
+      background: rgba(0,200,255,0.12); border: 1px solid rgba(0,200,255,0.3);
+      color: #00e5ff; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      padding: 6px 12px; border-radius: 99px; cursor: pointer;
+      margin-right: 10px; transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-hw:hover { opacity: 0.85; border-color: #00e5ff; }
+    .btn-hw:active { transform: scale(0.96); }
+
+    #hw-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(8px);
+      z-index: 500; display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    #hw-overlay.open { display: flex; }
+    .hw-modal {
+      background: #090e17; border: 1px solid rgba(0,200,255,0.25); border-radius: 16px;
+      width: 100%; max-width: 680px; max-height: 85vh; display: flex; flex-direction: column;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6); overflow: hidden;
+    }
+    .hw-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(0,200,255,0.03);
+    }
+    .hw-title { font-size: 15px; font-weight: 800; color: #00e5ff; letter-spacing: 1px; }
+    .hw-close {
+      background: transparent; border: 1px solid rgba(255,255,255,0.15); color: var(--muted);
+      border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-size: 14px;
+    }
+    .hw-close:hover { color: #fff; border-color: #fff; }
+    .hw-body { padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+    
+    .hw-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .hw-btn {
+      padding: 7px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+      border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); cursor: pointer; transition: 0.15s;
+    }
+    .hw-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .hw-btn-pri { background: rgba(0,200,255,0.15); border-color: #00e5ff; color: #00e5ff; }
+
+    .hw-card {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .hw-card:hover { border-color: rgba(0,200,255,0.3); }
+    .hw-card-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+    .hw-dev-name { font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+    .hw-badge {
+      font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px;
+      background: rgba(0,200,255,0.14); color: #00e5ff;
+    }
+    .hw-badge-room {
+      background: rgba(255,255,255,0.08); color: #cbd5e1;
+    }
+    .hw-duties { font-size: 12px; color: #94a3b8; line-height: 1.4; }
+    .hw-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .hw-act-btn {
+      padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 6px;
+      border: 1px solid transparent; cursor: pointer; transition: 0.12s;
+    }
+    .hw-act-on { background: rgba(34,197,94,0.15); border-color: #22c55e; color: #22c55e; }
+    .hw-act-off { background: rgba(239,68,68,0.15); border-color: #ef4444; color: #ef4444; }
+    .hw-act-fan { background: rgba(0,200,255,0.15); border-color: #00e5ff; color: #00e5ff; }
+    .hw-act-read { background: rgba(168,85,247,0.15); border-color: #a855f7; color: #c084fc; }
+    .hw-act-ping { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.15); color: #cbd5e1; }
+    .hw-act-del { background: transparent; border-color: rgba(239,68,68,0.3); color: #ef4444; }
+
+    .hw-form {
+      display: none; flex-direction: column; gap: 8px; background: rgba(0,200,255,0.03);
+      border: 1px solid rgba(0,200,255,0.2); border-radius: 12px; padding: 14px;
+    }
+    .hw-form.open { display: flex; }
+    .hw-input-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .hw-input {
+      background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff;
+      padding: 8px 10px; border-radius: 8px; font-size: 12px; flex: 1; min-width: 140px;
+    }
+    .hw-input:focus { border-color: var(--accent); outline: none; }
+    .hw-select {
+      background: #090e17; border: 1px solid var(--border); color: #fff;
+      padding: 8px 10px; border-radius: 8px; font-size: 12px;
+    }
+
+    #hw-status-log {
+      font-size: 11px; padding: 8px 12px; border-radius: 8px; background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.08); color: var(--muted); line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -139,9 +228,65 @@
     <div class="pill" id="pill"><span class="dot"></span><span id="st">Connecting</span></div>
     <div class="enc-badge" id="enc">AES-GCM</div>
     <div class="spacer"></div>
+    <button class="btn-hw" onclick="toggleHardware()" title="Hardware & IoT Hub">⚡ HARDWARE</button>
     <div class="url">__IP__:__PORT__</div>
   </header>
   <main id="feed"></main>
+
+  <!-- ── Hardware & IoT Hub Modal ── -->
+  <div id="hw-overlay">
+    <div class="hw-modal">
+      <div class="hw-head">
+        <div>
+          <div class="hw-title">⚡ HARDWARE & IOT HUB</div>
+          <div style="font-size:11px;color:var(--muted)">ESP32 / ESP8266 & Raspberry Pi Control Center</div>
+        </div>
+        <button class="hw-close" onclick="toggleHardware()">✕</button>
+      </div>
+      <div class="hw-body">
+        <div class="hw-bar">
+          <button class="hw-btn hw-btn-pri" onclick="toggleAddForm()">+ CONNECT DEVICE</button>
+          <button class="hw-btn" onclick="scanHardwareNetwork()">🔍 SCAN NETWORK</button>
+          <button class="hw-btn" onclick="checkHomelabHealth()">💻 HOMELAB HEALTH</button>
+          <button class="hw-btn" style="color:#f59e0b;border-color:#f59e0b" onclick="testHomelabAlert()">🚨 TEST ALERT</button>
+          <button class="hw-btn" onclick="loadHardwareDevices()">🔄 REFRESH</button>
+        </div>
+
+        <!-- Add Device Form -->
+        <div id="hw-add-form" class="hw-form">
+          <div style="font-size:12px;font-weight:700;color:#00e5ff">Register New Hardware Device</div>
+          <div class="hw-input-row">
+            <input class="hw-input" id="hw-in-name" placeholder="Device Name (e.g. bedroom_esp, farm_server)">
+            <select class="hw-select" id="hw-in-type">
+              <option value="esp32">ESP32</option>
+              <option value="esp8266">ESP8266</option>
+              <option value="raspberry_pi">Raspberry Pi (Server)</option>
+              <option value="generic">Arduino / Other</option>
+            </select>
+            <input class="hw-input" id="hw-in-room" placeholder="Room / Server (e.g. Bedroom, Farm)">
+          </div>
+          <div class="hw-input-row">
+            <input class="hw-input" id="hw-in-host" placeholder="IP Address or Hostname (e.g. 192.168.1.50)">
+            <input class="hw-input" style="max-width:80px" id="hw-in-port" value="80" placeholder="Port">
+            <select class="hw-select" id="hw-in-proto">
+              <option value="http">HTTP / REST</option>
+              <option value="mqtt">MQTT</option>
+              <option value="socket">TCP Socket</option>
+            </select>
+          </div>
+          <div class="hw-input-row">
+            <input class="hw-input" id="hw-in-duties" placeholder="Assigned Duties (e.g. Room Lights & Fans, Farm Soil Sensors)">
+            <button class="hw-btn hw-btn-pri" onclick="saveHardwareDevice()">SAVE DEVICE</button>
+          </div>
+        </div>
+
+        <!-- Devices List Container -->
+        <div id="hw-devices-list" style="display:flex;flex-direction:column;gap:10px"></div>
+
+        <div id="hw-status-log">Status: Ready. Click any action to control devices or read sensor telemetry.</div>
+      </div>
+    </div>
+  </div>
   <footer>
     <input id="inp" placeholder="Send a command to JARVIS…" autocomplete="off">
     <label class="btn-attach" for="file-inp" title="Send file">📎</label>
@@ -590,6 +735,201 @@
         if (w.readyState < 2) w.close();
       }
       _micIdle();
+    }
+
+    // ── Hardware & IoT Hub Client Logic ──────────────────────────────────────
+    function toggleHardware() {
+      const ov = document.getElementById('hw-overlay');
+      ov.classList.toggle('open');
+      if (ov.classList.contains('open')) {
+        loadHardwareDevices();
+      }
+    }
+
+    function toggleAddForm() {
+      document.getElementById('hw-add-form').classList.toggle('open');
+    }
+
+    async function loadHardwareDevices() {
+      const log = document.getElementById('hw-status-log');
+      log.textContent = 'Loading devices from JARVIS…';
+      try {
+        const res = await _authFetch('/api/hardware/devices');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        renderHardwareCards(data.devices || {});
+        log.textContent = `Loaded ${Object.keys(data.devices || {}).length} hardware devices. Ready.`;
+      } catch (err) {
+        log.textContent = 'Failed to load hardware devices: ' + err.message;
+      }
+    }
+
+    function renderHardwareCards(devices) {
+      const container = document.getElementById('hw-devices-list');
+      container.innerHTML = '';
+      const names = Object.keys(devices);
+      if (names.length === 0) {
+        container.innerHTML = '<div style="color:var(--muted);text-align:center;padding:24px;font-size:12px">No hardware devices configured yet. Click "+ CONNECT DEVICE" to add an ESP or Raspberry Pi.</div>';
+        return;
+      }
+
+      names.forEach(name => {
+        const d = devices[name];
+        const isServer = (d.role === 'server') || name.includes('server') || (d.type || '').includes('raspberry');
+        const duties = d.duties || d.description || (isServer ? 'Farm Sensors & Server Telemetry' : 'Room Lights & Fan Control');
+        const room = d.room || (isServer ? 'Farm' : 'Room');
+        const devType = (d.type || 'ESP32').toUpperCase();
+
+        const card = document.createElement('div');
+        card.className = 'hw-card';
+
+        let actionBtns = '';
+        const hasLights = duties.toLowerCase().includes('light') || !isServer;
+        const hasFans = duties.toLowerCase().includes('fan');
+
+        if (hasLights) {
+          actionBtns += `<button class="hw-act-btn hw-act-on" onclick="hwAction('${name}', 'turn_on')">💡 ON</button>`;
+          actionBtns += `<button class="hw-act-btn hw-act-off" onclick="hwAction('${name}', 'turn_off')">💡 OFF</button>`;
+        }
+        if (hasFans) {
+          actionBtns += `<button class="hw-act-btn hw-act-fan" onclick="hwAction('${name}', 'toggle')">🌀 FAN</button>`;
+        }
+        if (isServer || duties.toLowerCase().includes('sensor')) {
+          actionBtns += `<button class="hw-act-btn hw-act-read" onclick="hwAction('${name}', 'read_sensor')">📊 READ FARM SENSORS</button>`;
+        } else {
+          actionBtns += `<button class="hw-act-btn hw-act-read" onclick="hwAction('${name}', 'read_sensor')">📡 READ</button>`;
+        }
+        actionBtns += `<button class="hw-act-btn hw-act-ping" onclick="hwAction('${name}', 'get_status')">PING</button>`;
+        actionBtns += `<button class="hw-act-btn hw-act-del" onclick="deleteHardwareDevice('${name}')">🗑</button>`;
+
+        card.innerHTML = `
+          <div class="hw-card-top">
+            <div class="hw-dev-name">
+              <span>${name}</span>
+              <span class="hw-badge">${devType}</span>
+              <span class="hw-badge hw-badge-room">${isServer ? 'Server: ' : 'Room: '}${room}</span>
+            </div>
+            <div style="font-size:11px;color:var(--muted)">${d.host}:${d.port || 80} (${(d.protocol || 'http').toUpperCase()})</div>
+          </div>
+          <div class="hw-duties">📋 <strong>Duties:</strong> ${duties}</div>
+          <div class="hw-actions">${actionBtns}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function hwAction(device, action) {
+      const log = document.getElementById('hw-status-log');
+      log.textContent = `Executing '${action}' on ${device}…`;
+      try {
+        const res = await _authFetch('/api/hardware/control', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action, device: device })
+        });
+        const data = await res.json();
+        log.textContent = `[${device}] ${data.result}`;
+        toast(data.ok ? '✓ Hardware action done' : '⚠ ' + action);
+      } catch (err) {
+        log.textContent = `Action failed: ${err.message}`;
+        toast('Action failed');
+      }
+    }
+
+    async function saveHardwareDevice() {
+      const name = document.getElementById('hw-in-name').value.trim();
+      const host = document.getElementById('hw-in-host').value.trim();
+      const port = parseInt(document.getElementById('hw-in-port').value.trim()) || 80;
+      const type = document.getElementById('hw-in-type').value;
+      const room = document.getElementById('hw-in-room').value.trim();
+      const proto = document.getElementById('hw-in-proto').value;
+      const duties = document.getElementById('hw-in-duties').value.trim();
+
+      if (!name || !host) {
+        toast('Device Name & IP required');
+        return;
+      }
+
+      const log = document.getElementById('hw-status-log');
+      log.textContent = `Saving device '${name}'…`;
+      try {
+        const res = await _authFetch('/api/hardware/devices', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: name,
+            host: host,
+            port: port,
+            type: type,
+            room: room || (type === 'raspberry_pi' ? 'Farm' : 'Room'),
+            role: (type === 'raspberry_pi' || name.includes('server')) ? 'server' : 'controller',
+            protocol: proto,
+            duties: duties || (type === 'raspberry_pi' ? 'Farm Sensors Telemetry' : 'Room Lights & Fans')
+          })
+        });
+        const data = await res.json();
+        log.textContent = `Saved: ${data.result}`;
+        toggleAddForm();
+        loadHardwareDevices();
+        toast('Device saved!');
+      } catch (err) {
+        log.textContent = 'Save failed: ' + err.message;
+        toast('Save failed');
+      }
+    }
+
+    async function deleteHardwareDevice(name) {
+      if (!confirm(`Remove device '${name}'?`)) return;
+      try {
+        await _authFetch(`/api/hardware/devices/${encodeURIComponent(name)}`, { method: 'DELETE' });
+        loadHardwareDevices();
+        toast('Device removed');
+      } catch (err) {
+        toast('Delete failed');
+      }
+    }
+
+    async function scanHardwareNetwork() {
+      const log = document.getElementById('hw-status-log');
+      log.textContent = 'Scanning local network for active ESP and Raspberry Pi boards…';
+      try {
+        const res = await _authFetch('/api/hardware/scan', { method: 'POST' });
+        const data = await res.json();
+        log.textContent = data.result;
+        toast('Network scan complete');
+      } catch (err) {
+        log.textContent = 'Scan failed: ' + err.message;
+      }
+    }
+
+    async function checkHomelabHealth() {
+      const log = document.getElementById('hw-status-log');
+      log.textContent = 'Running Homelab Sentinel healthcheck (Docker, CPU/RAM, Services)…';
+      try {
+        const res = await _authFetch('/api/homelab/status');
+        const data = await res.json();
+        log.textContent = `[Homelab] ${data.summary}`;
+        toast(data.ok ? '✓ Homelab Healthy' : '⚠ Homelab Anomaly');
+      } catch (err) {
+        log.textContent = 'Homelab check failed: ' + err.message;
+      }
+    }
+
+    async function testHomelabAlert() {
+      const log = document.getElementById('hw-status-log');
+      log.textContent = 'Dispatching test alert to Telegram, Email, and WhatsApp…';
+      try {
+        const res = await _authFetch('/api/homelab/test-alert', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel: 'all' })
+        });
+        const data = await res.json();
+        log.textContent = data.result;
+        toast('Test alert sent!');
+      } catch (err) {
+        log.textContent = 'Alert test failed: ' + err.message;
+      }
     }
   </script>
 </body>

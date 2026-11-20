@@ -1143,6 +1143,95 @@ class DashboardServer:
                 pass
             return JSONResponse({"files": files})
 
+        # ── Hardware & IoT Endpoints ──────────────────────────────────────────
+        @app.get("/api/hardware/devices")
+        async def list_hardware_devices(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            from actions.hardware_control import _load_config
+            cfg = _load_config()
+            return JSONResponse(cfg)
+
+        @app.post("/api/hardware/devices")
+        async def add_hardware_device(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            try:
+                body = await req.json()
+            except Exception:
+                return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+            from actions.hardware_control import hardware_control
+            params = dict(body)
+            params["action"] = "add_device"
+            res = hardware_control(params)
+            return JSONResponse({"result": res, "ok": "status=done" in res})
+
+        @app.delete("/api/hardware/devices/{name}")
+        async def delete_hardware_device(name: str, req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            from actions.hardware_control import hardware_control
+            res = hardware_control({"action": "remove_device", "device": name})
+            return JSONResponse({"result": res, "ok": "status=done" in res})
+
+        @app.post("/api/hardware/control")
+        async def hardware_control_ep(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            try:
+                body = await req.json()
+            except Exception:
+                return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+            from actions.hardware_control import hardware_control
+            res = hardware_control(body)
+            return JSONResponse({"result": res, "ok": "status=done" in res})
+
+        @app.post("/api/hardware/scan")
+        async def hardware_scan_ep(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            from actions.hardware_control import hardware_control
+            res = hardware_control({"action": "scan_devices"})
+            return JSONResponse({"result": res, "ok": True})
+
+        # ── Homelab Monitoring & Alerts Endpoints ─────────────────────────────
+        @app.get("/api/homelab/status")
+        async def homelab_status_ep(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            from actions.homelab_monitor import run_homelab_healthcheck
+            report = run_homelab_healthcheck(auto_alert=False)
+            return JSONResponse(report)
+
+        @app.post("/api/homelab/test-alert")
+        async def homelab_test_alert_ep(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            try:
+                body = await req.json()
+            except Exception:
+                body = {}
+            from actions.homelab_monitor import homelab_monitor
+            res = homelab_monitor({
+                "action": "test_alert",
+                "channel": body.get("channel", "telegram")
+            })
+            return JSONResponse({"result": res, "ok": "status=done" in res})
+
+        @app.post("/api/homelab/configure-alerts")
+        async def homelab_config_alerts_ep(req: Request):
+            if not _auth(req):
+                return JSONResponse({"error": "Unauthorized"}, status_code=401)
+            try:
+                body = await req.json()
+            except Exception:
+                return JSONResponse({"error": "Invalid JSON"}, status_code=400)
+            from actions.homelab_monitor import homelab_monitor
+            params = dict(body)
+            params["action"] = "configure_alerts"
+            res = homelab_monitor(params)
+            return JSONResponse({"result": res, "ok": "status=done" in res})
+
         @app.get("/uploads/{filename}")
         async def download_file(filename: str, token: str = ""):
             # Auth via query param — browser <a download> can't send custom headers

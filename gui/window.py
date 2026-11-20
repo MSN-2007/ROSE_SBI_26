@@ -76,6 +76,7 @@ from gui.overlays import (
     ClipboardPanel,
     ConfirmBanner,
     CustomizeOverlay,
+    HardwareOverlay,
     MemoryOverlay,
     PluginManagerOverlay,
     PluginSettingsOverlay,
@@ -117,6 +118,7 @@ class MainWindow(QMainWindow):
     _quiz_sig       = pyqtSignal(str, object, object)  # (topic, questions, grader)
     _quiz_hide_sig  = pyqtSignal()
     _review_sig     = pyqtSignal(str, str, object, object)  # document review payload
+    _hardware_sig   = pyqtSignal()           # thread-safe hardware overlay display
 
     def __init__(self, face_path: str):
         super().__init__()
@@ -411,6 +413,7 @@ class MainWindow(QMainWindow):
         self._video_seek_sig.connect(self._on_video_seek)
         self._video_pause_sig.connect(self._on_video_pause)
         self._clipboard_sig.connect(self._show_clipboard_panel)
+        self._hardware_sig.connect(self._open_hardware_overlay)
         self._wake_dl_sig.connect(self._on_wake_install_done)
         self._quiz_sig.connect(self._show_quiz)
         self._quiz_hide_sig.connect(self._hide_quiz)
@@ -1648,6 +1651,7 @@ class MainWindow(QMainWindow):
         _btn("🧠  MEMORY", self._open_memory_panel)
         _btn("🧩  PLUGINS", self._open_plugin_manager)
         _btn("⚙  PLUGIN SETTINGS", self._open_plugin_settings)
+        _btn("⚡  HARDWARE & IOT HUB", self._open_hardware_overlay)
         # The button is built here with the rest of the drawer; the panel behind
         # it — and the whole providers package — is imported on the click. The
         # drawer used to stutter for a measured 2.104 seconds because a state
@@ -2835,6 +2839,12 @@ class MainWindow(QMainWindow):
         ov.show()
         ov.raise_()
         self._plugin_settings_overlay = ov   # keep a reference so it isn't GC'd
+
+    def _open_hardware_overlay(self):
+        cw = self.centralWidget()
+        ov = HardwareOverlay(parent=cw)
+        self._centre_overlay(ov)
+        self._hardware_overlay = ov          # keep a reference so it isn't GC'd
 
     # ── Clipboard intelligence ───────────────────────────────────────────────────
 

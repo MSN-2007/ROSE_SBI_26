@@ -266,6 +266,10 @@ class JarvisUI:
         """Thread-safe: display content in the panel below the HUD."""
         self._win._content_sig.emit(title[:48], text[:4000])
 
+    def show_hardware(self) -> None:
+        """Thread-safe: open the Hardware & IoT Hub overlay on the main window."""
+        self._win._hardware_sig.emit()
+
     def show_code_job(self, job: dict) -> None:
         """Thread-safe: draw the coding agent's live progress in the panel."""
         self._win._codejob_sig.emit(dict(job))

@@ -14,9 +14,7 @@ from pathlib import Path
 
 _BLOCKED = {
     # Brand / asset names — spelled the same in every language
-    "bitcoin", "ethereum", "dogecoin", "solana", "binance",
-    "nft", "blockchain", "defi", "altcoin", "memecoin", "coin", "token",
-    # spellings of the "crypto" root across different languages
+     # spellings of the "crypto" root across different languages
     "crypto", "kripto", "cripto", "krypto", "крипто", "仮想通貨", "暗号資産",
     "cryptocurrency",
 }

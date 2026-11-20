@@ -1,0 +1,43 @@
+{
+    "servers": {
+        "farm_server": {
+            "name": "Raspberry Pi Farm Server",
+            "host": "192.168.1.60",
+            "type": "raspberry_pi",
+            "docker_url": "http://192.168.1.60:2375",
+            "services": [
+                {
+                    "name": "Telemetry API",
+                    "url": "http://192.168.1.60:5000/api/status"
+                }
+            ],
+            "description": "Main farm sensor collector and automation node"
+        }
+    },
+    "alert_channels": {
+        "telegram": {
+            "enabled": false,
+            "bot_token": "",
+            "chat_id": ""
+        },
+        "email": {
+            "enabled": false,
+            "smtp_server": "smtp.gmail.com",
+            "smtp_port": 587,
+            "use_tls": true,
+            "username": "",
+            "password": "",
+            "recipient": ""
+        },
+        "whatsapp": {
+            "enabled": false,
+            "phone": "",
+            "apikey": ""
+        }
+    },
+    "thresholds": {
+        "cpu_percent": 90,
+        "ram_percent": 90,
+        "disk_percent": 90
+    }
+}

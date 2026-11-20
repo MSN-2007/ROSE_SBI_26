@@ -1,0 +1,33 @@
+{
+    "devices": {
+        "bedroom_esp": {
+            "name": "Bedroom ESP32",
+            "type": "esp32",
+            "room": "Bedroom",
+            "host": "192.168.1.50",
+            "port": 80,
+            "protocol": "http",
+            "duties": ["lights", "fans"],
+            "endpoints": {
+                "turn_on": "/light/on",
+                "turn_off": "/light/off",
+                "fan_on": "/fan/on",
+                "fan_off": "/fan/off",
+                "status": "/status"
+            }
+        },
+        "farm_server": {
+            "name": "Raspberry Pi Farm Server",
+            "type": "raspberry_pi",
+            "room": "Farm",
+            "host": "192.168.1.60",
+            "port": 5000,
+            "protocol": "http",
+            "duties": ["sensors", "telemetry"],
+            "endpoints": {
+                "read_sensors": "/api/sensors",
+                "status": "/api/status"
+            }
+        }
+    }
+}

@@ -1903,3 +1903,544 @@ class RemoteKeyOverlay(QWidget):
         self.closed.emit()
 
 
+# ── Hardware & IoT Hub Overlay ────────────────────────────────────────────────
+
+class HardwareOverlay(QWidget):
+    """Floating overlay — Connect and control ESP32, ESP8266 & Raspberry Pi devices.
+    
+    Lets the user name ESPs, assign them to rooms (e.g. Bedroom, Living Room) with
+    duties like turning ON/OFF room lights and fans, and configure Raspberry Pi
+    servers to read telemetry from farm sensors.
+    """
+
+    _OW = 680
+    _OH = 580
+    action_result = pyqtSignal(str, str)   # (level: "ok"|"err"|"info", message: str)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet(f"""
+            HardwareOverlay {{
+                background: rgba(0, 8, 14, 248);
+                border: 1px solid {C.BORDER_B};
+                border-radius: 8px;
+            }}
+        """)
+        self.setFixedSize(self._OW, self._OH)
+
+        self.action_result.connect(self._on_action_result)
+
+        main_lay = QVBoxLayout(self)
+        main_lay.setContentsMargins(20, 16, 20, 16)
+        main_lay.setSpacing(10)
+
+        # ── Header ──
+        hdr_row = QHBoxLayout()
+        title_box = QVBoxLayout()
+        title_box.setSpacing(2)
+
+        hdr = QLabel("⚡  HARDWARE & IOT HUB")
+        hdr.setFont(hud_font(12, QFont.Weight.Bold))
+        hdr.setStyleSheet(f"color: {C.PRI}; background: transparent; letter-spacing: 1px;")
+        title_box.addWidget(hdr)
+
+        sub = QLabel("Connect & manage ESP32/ESP8266 room controllers and Raspberry Pi farm servers")
+        sub.setFont(hud_font(8))
+        sub.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
+        title_box.addWidget(sub)
+        hdr_row.addLayout(title_box, stretch=1)
+
+        close_btn = QPushButton("✕")
+        close_btn.setFixedSize(28, 28)
+        close_btn.setFont(hud_font(10, QFont.Weight.Bold))
+        close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        close_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: {C.TEXT_DIM};
+                border: 1px solid {C.BORDER}; border-radius: 4px;
+            }}
+            QPushButton:hover {{ color: {C.RED}; border-color: {C.RED}; }}
+        """)
+        close_btn.clicked.connect(self.hide)
+        hdr_row.addWidget(close_btn)
+        main_lay.addLayout(hdr_row)
+
+        sep = QFrame(); sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setStyleSheet(f"color: {C.BORDER}; margin: 2px 0;")
+        main_lay.addWidget(sep)
+
+        # ── Toolbar ──
+        tb = QHBoxLayout(); tb.setSpacing(8)
+        self._toggle_add_btn = QPushButton("+ CONNECT NEW DEVICE")
+        self._toggle_add_btn.setFixedHeight(28)
+        self._toggle_add_btn.setFont(hud_font(8, QFont.Weight.Bold))
+        self._toggle_add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._toggle_add_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.PANEL}; color: {C.PRI};
+                border: 1px solid {C.PRI}; border-radius: 4px; padding: 0 10px;
+            }}
+            QPushButton:hover {{ background: rgba(0, 200, 255, 30); }}
+        """)
+        self._toggle_add_btn.clicked.connect(self._toggle_add_panel)
+        tb.addWidget(self._toggle_add_btn)
+
+        scan_btn = QPushButton("🔍 SCAN NETWORK")
+        scan_btn.setFixedHeight(28)
+        scan_btn.setFont(hud_font(8))
+        scan_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        scan_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: {C.TEXT_MED};
+                border: 1px solid {C.BORDER}; border-radius: 4px; padding: 0 10px;
+            }}
+            QPushButton:hover {{ color: {C.TEXT}; border-color: {C.BORDER_B}; }}
+        """)
+        scan_btn.clicked.connect(self._scan_network)
+        tb.addWidget(scan_btn)
+
+        homelab_btn = QPushButton("💻 HOMELAB HEALTH")
+        homelab_btn.setFixedHeight(28)
+        homelab_btn.setFont(hud_font(8))
+        homelab_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        homelab_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: {C.ACC};
+                border: 1px solid {C.BORDER_B}; border-radius: 4px; padding: 0 10px;
+            }}
+            QPushButton:hover {{ background: rgba(0, 200, 255, 20); }}
+        """)
+        homelab_btn.clicked.connect(self._check_homelab)
+        tb.addWidget(homelab_btn)
+
+        alert_btn = QPushButton("🚨 TEST ALERT")
+        alert_btn.setFixedHeight(28)
+        alert_btn.setFont(hud_font(8))
+        alert_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        alert_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: #f59e0b;
+                border: 1px solid #f59e0b; border-radius: 4px; padding: 0 8px;
+            }}
+            QPushButton:hover {{ background: rgba(245, 158, 11, 20); }}
+        """)
+        alert_btn.clicked.connect(self._test_alert)
+        tb.addWidget(alert_btn)
+
+        tb.addStretch()
+
+        ref_btn = QPushButton("🔄 REFRESH")
+        ref_btn.setFixedHeight(28)
+        ref_btn.setFont(hud_font(8))
+        ref_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        ref_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: transparent; color: {C.TEXT_MED};
+                border: 1px solid {C.BORDER}; border-radius: 4px; padding: 0 8px;
+            }}
+            QPushButton:hover {{ color: {C.TEXT}; border-color: {C.BORDER_B}; }}
+        """)
+        ref_btn.clicked.connect(self._refresh_list)
+        tb.addWidget(ref_btn)
+        main_lay.addLayout(tb)
+
+        # ── Add Device Form Panel (collapsible) ──
+        self._add_panel = QFrame()
+        self._add_panel.setStyleSheet(f"""
+            QFrame {{
+                background: rgba(0, 15, 25, 230);
+                border: 1px solid {C.BORDER_B};
+                border-radius: 6px;
+                padding: 6px;
+            }}
+        """)
+        add_v = QVBoxLayout(self._add_panel)
+        add_v.setContentsMargins(10, 8, 10, 8)
+        add_v.setSpacing(6)
+
+        add_hdr = QLabel("CONNECT & CONFIGURE HARDWARE DEVICE")
+        add_hdr.setFont(hud_font(8, QFont.Weight.Bold))
+        add_hdr.setStyleSheet(f"color: {C.ACC}; background: transparent;")
+        add_v.addWidget(add_hdr)
+
+        # Row 1: Name, Type, Room / Role
+        r1 = QHBoxLayout(); r1.setSpacing(6)
+        self._in_name = QLineEdit()
+        self._in_name.setPlaceholderText("Device Name (e.g. bedroom_esp, farm_server)")
+        self._in_name.setStyleSheet(self._input_css())
+        r1.addWidget(self._in_name, stretch=3)
+
+        self._in_type = QComboBox()
+        self._in_type.addItems(["ESP32", "ESP8266", "Raspberry Pi (Server)", "Arduino / Other"])
+        self._in_type.setStyleSheet(self._input_css())
+        r1.addWidget(self._in_type, stretch=2)
+
+        self._in_room = QLineEdit()
+        self._in_room.setPlaceholderText("Room / Location (e.g. Bedroom, Farm)")
+        self._in_room.setStyleSheet(self._input_css())
+        r1.addWidget(self._in_room, stretch=2)
+        add_v.addLayout(r1)
+
+        # Row 2: IP / Host, Port, Protocol
+        r2 = QHBoxLayout(); r2.setSpacing(6)
+        self._in_host = QLineEdit()
+        self._in_host.setPlaceholderText("IP Address or Hostname (e.g. 192.168.1.50)")
+        self._in_host.setStyleSheet(self._input_css())
+        r2.addWidget(self._in_host, stretch=3)
+
+        self._in_port = QLineEdit("80")
+        self._in_port.setPlaceholderText("Port")
+        self._in_port.setStyleSheet(self._input_css())
+        r2.addWidget(self._in_port, stretch=1)
+
+        self._in_proto = QComboBox()
+        self._in_proto.addItems(["HTTP / REST", "MQTT", "TCP Socket"])
+        self._in_proto.setStyleSheet(self._input_css())
+        r2.addWidget(self._in_proto, stretch=2)
+        add_v.addLayout(r2)
+
+        # Row 3: Assigned Duties
+        r3 = QHBoxLayout(); r3.setSpacing(6)
+        self._in_duties = QLineEdit()
+        self._in_duties.setPlaceholderText("Assigned Duties (e.g. Room Lights & Fans, Farm Soil & Weather Sensors)")
+        self._in_duties.setStyleSheet(self._input_css())
+        r3.addWidget(self._in_duties, stretch=4)
+
+        save_btn = QPushButton("SAVE DEVICE")
+        save_btn.setFixedHeight(26)
+        save_btn.setFont(hud_font(8, QFont.Weight.Bold))
+        save_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        save_btn.setStyleSheet(f"""
+            QPushButton {{
+                background: {C.PRI}; color: #000;
+                border: none; border-radius: 4px; padding: 0 12px;
+            }}
+            QPushButton:hover {{ background: {C.ACC}; }}
+        """)
+        save_btn.clicked.connect(self._save_device)
+        r3.addWidget(save_btn)
+        add_v.addLayout(r3)
+
+        self._add_panel.hide()
+        main_lay.addWidget(self._add_panel)
+
+        # ── Scrollable Device List ──
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setStyleSheet("""
+            QScrollArea { border: none; background: transparent; }
+            QScrollBar:vertical {
+                border: none; background: rgba(0,0,0,50); width: 6px; margin: 0;
+            }
+            QScrollBar::handle:vertical {
+                background: rgba(0, 200, 255, 60); border-radius: 3px;
+            }
+        """)
+        self._scroll_cont = QWidget()
+        self._scroll_cont.setStyleSheet("background: transparent;")
+        self._list_lay = QVBoxLayout(self._scroll_cont)
+        self._list_lay.setContentsMargins(0, 0, 0, 0)
+        self._list_lay.setSpacing(8)
+        self._scroll.setWidget(self._scroll_cont)
+        main_lay.addWidget(self._scroll, stretch=1)
+
+        # ── Status & Telemetry Output Banner ──
+        self._status_box = QLabel("Ready — Click device actions or voice command JARVIS.")
+        self._status_box.setFont(hud_font(8))
+        self._status_box.setStyleSheet(f"""
+            QLabel {{
+                background: rgba(0, 10, 16, 200);
+                color: {C.TEXT_MED};
+                border: 1px solid {C.BORDER};
+                border-radius: 4px;
+                padding: 6px 8px;
+            }}
+        """)
+        self._status_box.setWordWrap(True)
+        main_lay.addWidget(self._status_box)
+
+        # Initial populate
+        self._refresh_list()
+
+    def _input_css(self) -> str:
+        return f"""
+            QLineEdit, QComboBox {{
+                background: rgba(0, 10, 18, 200);
+                color: {C.TEXT};
+                border: 1px solid {C.BORDER};
+                border-radius: 4px;
+                padding: 4px 6px;
+                font-size: 11px;
+            }}
+            QLineEdit:focus, QComboBox:focus {{
+                border-color: {C.PRI};
+            }}
+        """
+
+    def _toggle_add_panel(self):
+        if self._add_panel.isVisible():
+            self._add_panel.hide()
+            self._toggle_add_btn.setText("+ CONNECT NEW DEVICE")
+        else:
+            self._add_panel.show()
+            self._toggle_add_btn.setText("▲ HIDE FORM")
+
+    def _save_device(self):
+        name = self._in_name.text().strip().lower().replace(" ", "_")
+        host = self._in_host.text().strip()
+        room = self._in_room.text().strip()
+        duties = self._in_duties.text().strip()
+        dev_type = self._in_type.currentText().lower()
+        if "raspberry" in dev_type:
+            dev_type = "raspberry_pi"
+        elif "8266" in dev_type:
+            dev_type = "esp8266"
+        elif "32" in dev_type:
+            dev_type = "esp32"
+        else:
+            dev_type = "generic"
+
+        proto = self._in_proto.currentText().lower()
+        if "mqtt" in proto:
+            proto = "mqtt"
+        elif "socket" in proto:
+            proto = "socket"
+        else:
+            proto = "http"
+
+        try:
+            port = int(self._in_port.text().strip())
+        except ValueError:
+            port = 80 if proto == "http" else 1883
+
+        if not name or not host:
+            self._on_action_result("err", "Device Name and IP/Host are required.")
+            return
+
+        from actions.hardware_control import hardware_control
+        res = hardware_control({
+            "action": "add_device",
+            "name": name,
+            "host": host,
+            "port": port,
+            "protocol": proto,
+            "type": dev_type,
+            "room": room or ("Farm" if "farm" in name or "server" in name else "General"),
+            "role": "server" if "server" in name or dev_type == "raspberry_pi" else "controller",
+            "duties": duties or ("Farm Sensors Telemetry" if dev_type == "raspberry_pi" else "Room Lights & Fans"),
+        })
+
+        self._in_name.clear()
+        self._in_host.clear()
+        self._in_room.clear()
+        self._in_duties.clear()
+        self._add_panel.hide()
+        self._toggle_add_btn.setText("+ CONNECT NEW DEVICE")
+        self._refresh_list()
+        self._on_action_result("ok", f"Successfully registered hardware device '{name}'.")
+
+    def _refresh_list(self):
+        # Clear existing items
+        while self._list_lay.count():
+            item = self._list_lay.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+
+        from actions.hardware_control import _load_config
+        cfg = _load_config()
+        devices = cfg.get("devices", {})
+
+        if not devices:
+            empty = QLabel("No hardware devices connected yet. Click '+ CONNECT NEW DEVICE' above to add your ESP or Raspberry Pi.")
+            empty.setFont(hud_font(8))
+            empty.setStyleSheet(f"color: {C.TEXT_DIM}; padding: 20px; background: transparent;")
+            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self._list_lay.addWidget(empty)
+            return
+
+        for name, d in devices.items():
+            self._list_lay.addWidget(self._build_device_card(name, d))
+
+        self._list_lay.addStretch()
+
+    def _build_device_card(self, name: str, d: dict) -> QFrame:
+        card = QFrame()
+        card.setStyleSheet(f"""
+            QFrame {{
+                background: rgba(0, 12, 20, 210);
+                border: 1px solid {C.BORDER};
+                border-radius: 6px;
+            }}
+            QFrame:hover {{
+                border-color: {C.BORDER_B};
+            }}
+        """)
+        c_lay = QHBoxLayout(card)
+        c_lay.setContentsMargins(12, 10, 12, 10)
+        c_lay.setSpacing(10)
+
+        # Left Info
+        info_v = QVBoxLayout()
+        info_v.setSpacing(3)
+
+        title_h = QHBoxLayout()
+        title_h.setSpacing(6)
+        name_lbl = QLabel(name)
+        name_lbl.setFont(hud_font(9, QFont.Weight.Bold))
+        name_lbl.setStyleSheet(f"color: {C.PRI}; background: transparent;")
+        title_h.addWidget(name_lbl)
+
+        dev_type = str(d.get("type") or "ESP32").upper()
+        type_pill = QLabel(f" {dev_type} ")
+        type_pill.setFont(hud_font(7, QFont.Weight.Bold))
+        type_pill.setStyleSheet(f"color: {C.ACC}; background: rgba(0, 200, 255, 30); border-radius: 3px;")
+        title_h.addWidget(type_pill)
+
+        room = d.get("room") or ("Farm" if "server" in name or "farm" in name else "Room")
+        room_pill = QLabel(f" {room} ")
+        room_pill.setFont(hud_font(7))
+        room_pill.setStyleSheet(f"color: {C.TEXT_MED}; background: rgba(255, 255, 255, 20); border-radius: 3px;")
+        title_h.addWidget(room_pill)
+        title_h.addStretch()
+        info_v.addLayout(title_h)
+
+        host_lbl = QLabel(f"Host: {d.get('host')}:{d.get('port', 80)} ({d.get('protocol', 'http').upper()})")
+        host_lbl.setFont(hud_font(7))
+        host_lbl.setStyleSheet(f"color: {C.TEXT_DIM}; background: transparent;")
+        info_v.addWidget(host_lbl)
+
+        duties = d.get("duties") or d.get("description") or "Hardware Control & Readout"
+        duties_lbl = QLabel(f"📋 Duties: {duties}")
+        duties_lbl.setFont(hud_font(8))
+        duties_lbl.setStyleSheet(f"color: {C.TEXT}; background: transparent;")
+        duties_lbl.setWordWrap(True)
+        info_v.addWidget(duties_lbl)
+
+        c_lay.addLayout(info_v, stretch=3)
+
+        # Right Action Buttons
+        btn_box = QVBoxLayout()
+        btn_box.setSpacing(4)
+
+        b_row1 = QHBoxLayout(); b_row1.setSpacing(4)
+        is_server = "server" in name or "raspi" in name or "raspberry" in dev_type.lower()
+        has_lights = "light" in duties.lower() or not is_server
+        has_fans = "fan" in duties.lower() or "speed" in duties.lower()
+
+        if has_lights:
+            on_btn = QPushButton("💡 ON")
+            on_btn.setFixedSize(62, 24)
+            on_btn.setFont(hud_font(7, QFont.Weight.Bold))
+            on_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            on_btn.setStyleSheet(f"background: rgba(34, 197, 94, 30); color: #22c55e; border: 1px solid #22c55e; border-radius: 3px;")
+            on_btn.clicked.connect(lambda _, dev=name: self._run_action(dev, "turn_on"))
+            b_row1.addWidget(on_btn)
+
+            off_btn = QPushButton("💡 OFF")
+            off_btn.setFixedSize(62, 24)
+            off_btn.setFont(hud_font(7, QFont.Weight.Bold))
+            off_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            off_btn.setStyleSheet(f"background: rgba(239, 68, 68, 30); color: #ef4444; border: 1px solid #ef4444; border-radius: 3px;")
+            off_btn.clicked.connect(lambda _, dev=name: self._run_action(dev, "turn_off"))
+            b_row1.addWidget(off_btn)
+
+        if has_fans:
+            fan_btn = QPushButton("🌀 FAN")
+            fan_btn.setFixedSize(62, 24)
+            fan_btn.setFont(hud_font(7, QFont.Weight.Bold))
+            fan_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+            fan_btn.setStyleSheet(f"background: rgba(0, 200, 255, 25); color: {C.ACC}; border: 1px solid {C.BORDER_B}; border-radius: 3px;")
+            fan_btn.clicked.connect(lambda _, dev=name: self._run_action(dev, "toggle"))
+            b_row1.addWidget(fan_btn)
+
+        btn_box.addLayout(b_row1)
+
+        b_row2 = QHBoxLayout(); b_row2.setSpacing(4)
+        # Sensor Readout button
+        read_btn = QPushButton("📊 READ SENSORS" if is_server else "📡 READ")
+        read_btn.setFixedHeight(22)
+        read_btn.setFont(hud_font(7, QFont.Weight.Bold))
+        read_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        read_btn.setStyleSheet(f"background: transparent; color: {C.PRI}; border: 1px solid {C.BORDER_B}; border-radius: 3px; padding: 0 6px;")
+        read_btn.clicked.connect(lambda _, dev=name: self._run_action(dev, "read_sensor"))
+        b_row2.addWidget(read_btn)
+
+        # Ping status
+        ping_btn = QPushButton("PING")
+        ping_btn.setFixedSize(48, 22)
+        ping_btn.setFont(hud_font(7))
+        ping_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        ping_btn.setStyleSheet(f"background: transparent; color: {C.TEXT_MED}; border: 1px solid {C.BORDER}; border-radius: 3px;")
+        ping_btn.clicked.connect(lambda _, dev=name: self._run_action(dev, "get_status"))
+        b_row2.addWidget(ping_btn)
+
+        # Delete button
+        del_btn = QPushButton("🗑")
+        del_btn.setFixedSize(26, 22)
+        del_btn.setFont(hud_font(8))
+        del_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        del_btn.setStyleSheet(f"background: transparent; color: {C.TEXT_DIM}; border: 1px solid {C.BORDER}; border-radius: 3px;")
+        del_btn.setToolTip("Remove Device")
+        del_btn.clicked.connect(lambda _, dev=name: self._delete_device(dev))
+        b_row2.addWidget(del_btn)
+
+        btn_box.addLayout(b_row2)
+        c_lay.addLayout(btn_box, stretch=1)
+        return card
+
+    def _run_action(self, device: str, action: str):
+        self._on_action_result("info", f"Executing '{action}' on device '{device}'…")
+        def _bg():
+            from actions.hardware_control import hardware_control
+            res = hardware_control({"action": action, "device": device})
+            level = "ok" if "status=done" in res else "err"
+            self.action_result.emit(level, f"[{device}] {res}")
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _delete_device(self, device: str):
+        from actions.hardware_control import hardware_control
+        hardware_control({"action": "remove_device", "device": device})
+        self._refresh_list()
+        self._on_action_result("ok", f"Removed device '{device}'.")
+
+    def _scan_network(self):
+        self._on_action_result("info", "Scanning local network for active ESP32, ESP8266 and Raspberry Pi devices…")
+        def _bg():
+            from actions.hardware_control import hardware_control
+            res = hardware_control({"action": "scan_devices"})
+            self.action_result.emit("ok", res)
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _check_homelab(self):
+        self._on_action_result("info", "Checking homelab status (Docker containers, CPU/RAM/Disk, and services)…")
+        def _bg():
+            from actions.homelab_monitor import homelab_monitor
+            res = homelab_monitor({"action": "check_status"})
+            level = "ok" if "health=healthy" in res else "err"
+            self.action_result.emit(level, f"[Homelab] {res}")
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _test_alert(self):
+        self._on_action_result("info", "Dispatching test alert to Telegram, Email, and WhatsApp…")
+        def _bg():
+            from actions.homelab_monitor import homelab_monitor
+            res = homelab_monitor({"action": "test_alert"})
+            self.action_result.emit("ok", f"[Alert Dispatch] {res}")
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _on_action_result(self, level: str, msg: str):
+        col = "#22c55e" if level == "ok" else ("#ef4444" if level == "err" else C.PRI)
+        self._status_box.setStyleSheet(f"""
+            QLabel {{
+                background: rgba(0, 10, 16, 220);
+                color: {col};
+                border: 1px solid {C.BORDER_B if level == 'ok' else C.BORDER};
+                border-radius: 4px;
+                padding: 6px 8px;
+            }}
+        """)
+        self._status_box.setText(msg[:240])
+
+
+

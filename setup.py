@@ -55,6 +55,14 @@ def _check_python() -> None:
         sys.exit(1)
 
 
+def _ensure_pip() -> None:
+    """Ensure pip is installed in the active environment (e.g. lean uv venvs)."""
+    res = subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, text=True)
+    if res.returncode != 0:
+        print("\n⚙  pip is missing in this Python environment — installing via ensurepip…")
+        subprocess.run([sys.executable, "-m", "ensurepip", "--default-pip"], check=True)
+
+
 def _check_assets() -> None:
     """The avatar's face is a shipped file; a truncated clone should say so."""
     face = HERE / "core" / "face_model.obj"
@@ -70,6 +78,7 @@ def main() -> None:
     print(f"⚙  MARK LIV setup — detected OS: {OS or 'unknown'}, "
           f"Python {sys.version_info[0]}.{sys.version_info[1]}")
     _check_python()
+    _ensure_pip()
 
     # requirements.txt filters OS-specific extras by itself via pip markers.
     _run("Installing Python dependencies (OS-specific extras auto-filtered)…",
